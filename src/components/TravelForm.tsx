@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles, Settings } from "lucide-react";
+import { Sparkles, Settings, Users, Plus, Minus, X } from "lucide-react";
 import { ProgressBar } from "./ProgressBar";
 import { useState, useMemo, useEffect } from "react";
 
@@ -109,7 +109,7 @@ const travelFormSchema = z.object({
     .max(15, "Phone number cannot exceed 15 digits")
     .regex(/^[0-9]+$/, "Phone number must contain only digits (0-9)"),
   email: z.string().email("Invalid email address"),
-  tripDuration: z.string().min(1, "Trip duration is required"),
+  tripDuration: z.coerce.number().min(1, "Duration must be at least 1 night").max(30, "Duration cannot exceed 30 nights").optional(),
   journeyMonth: z.string().min(1, "Journey month is required"),
   departureCountry: z.string().min(1, "Departure country is required"),
   emirates: z.array(z.string()).min(1, "Please select at least one emirate"),
@@ -129,6 +129,12 @@ export function TravelForm() {
   const [selectedEmirates, setSelectedEmirates] = useState<string[]>(["all"]); // Default to "All Emirates"
   const [isAllEmiratesSelected, setIsAllEmiratesSelected] = useState(true);
   const [isEmiratesDropdownOpen, setIsEmiratesDropdownOpen] = useState(false);
+  const [isPassengerPopupOpen, setIsPassengerPopupOpen] = useState(false);
+  const [passengerCounts, setPassengerCounts] = useState({
+    adults: 1,
+    kids: 0,
+    infants: 0
+  });
 
   const {
     register,
@@ -142,7 +148,7 @@ export function TravelForm() {
       countryCode: "+971",
       phone: "",
       email: "",
-      tripDuration: "",
+      tripDuration: undefined,
       journeyMonth: "",
       departureCountry: "",
       emirates: ["all"],
@@ -151,6 +157,7 @@ export function TravelForm() {
       kids: 0,
       infants: 0,
     },
+
   });
 
   // Filter countries based on search term
@@ -244,6 +251,37 @@ export function TravelForm() {
   }, [selectedEmirateImages]);
 
   const previewImageUrl = selectedEmirateImages[Math.min(previewIndex, selectedEmirateImages.length - 1)];
+
+  // Helper functions for passenger counts
+  const updatePassengerCount = (type: 'adults' | 'kids' | 'infants', increment: boolean) => {
+    setPassengerCounts(prev => {
+      const newCounts = { ...prev };
+      if (increment) {
+        if (type === 'adults' && newCounts.adults < 8) newCounts.adults++;
+        if (type === 'kids' && newCounts.kids < 6) newCounts.kids++;
+        if (type === 'infants' && newCounts.infants < 4) newCounts.infants++;
+      } else {
+        if (type === 'adults' && newCounts.adults > 1) newCounts.adults--;
+        if (type === 'kids' && newCounts.kids > 0) newCounts.kids--;
+        if (type === 'infants' && newCounts.infants > 0) newCounts.infants--;
+      }
+      return newCounts;
+    });
+  };
+
+  const getPassengerSummary = () => {
+    const { adults, kids, infants } = passengerCounts;
+    const total = adults + kids + infants;
+    if (total === 1) return '1 Passenger';
+    return `${total} Passengers`;
+  };
+
+  // Update form values when passenger counts change
+  useEffect(() => {
+    setValue('adults', passengerCounts.adults);
+    setValue('kids', passengerCounts.kids);
+    setValue('infants', passengerCounts.infants);
+  }, [passengerCounts, setValue]);
 
   const onSubmit = (data: TravelFormData, path: string) => {
     localStorage.setItem("travelFormData", JSON.stringify(data));
@@ -426,19 +464,17 @@ export function TravelForm() {
                     {/* Trip Details */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                       <div className="space-y-2">
-                        <Label className="text-sm font-medium text-slate-700 tracking-wide">Trip Duration (Nights)</Label>
-                        <Select onValueChange={(v) => setValue("tripDuration", v)}>
-                          <SelectTrigger className="input-travel">
-                            <SelectValue placeholder="e.g., 5 Days / 4 Nights" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="3-days">3 Days / 2 Nights</SelectItem>
-                            <SelectItem value="5-days">5 Days / 4 Nights</SelectItem>
-                            <SelectItem value="7-days">7 Days / 6 Nights</SelectItem>
-                            <SelectItem value="10-days">10 Days / 9 Nights</SelectItem>
-                            <SelectItem value="14-days">14 Days / 13 Nights</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Label htmlFor="tripDuration" className="text-sm font-medium text-slate-700 tracking-wide">Trip Duration (Nights)</Label>
+                        <Input 
+                          id="tripDuration" 
+                          type="number"
+                          inputMode="numeric"
+                          placeholder="e.g., 7" 
+                          {...register("tripDuration", { valueAsNumber: true })} 
+                          className="input-travel"
+                          min="1"
+                          max="30"
+                        />
                         {errors.tripDuration && <p className="text-red-500 text-sm">{errors.tripDuration.message}</p>}
                       </div>
 
@@ -553,7 +589,48 @@ export function TravelForm() {
                         </Select>
                       </div>
 
-                      <div className="space-y-2">
+                      {/* Mobile: Single Passenger Selector Button */}
+                      <div className="space-y-2 sm:hidden col-span-full">
+                        <Label className="text-sm font-medium text-slate-700 tracking-wide">Passengers</Label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsPassengerPopupOpen(true)}
+                          className="w-full h-12 px-4 py-3 bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-amber-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 text-left font-normal group"
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-gradient-to-br from-amber-100 to-blue-100 rounded-lg flex items-center justify-center group-hover:from-amber-200 group-hover:to-blue-200 transition-colors">
+                                <Users className="w-4 h-4 text-amber-600" />
+                              </div>
+                              <div>
+                                <div className="font-medium text-slate-800">{getPassengerSummary()}</div>
+                                <div className="text-xs text-slate-500 mt-0.5">
+                                  {passengerCounts.adults} Adult{passengerCounts.adults !== 1 ? 's' : ''} • {passengerCounts.kids} Child{passengerCounts.kids !== 1 ? 'ren' : ''} • {passengerCounts.infants} Infant{passengerCounts.infants !== 1 ? 's' : ''}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {/* <div className="bg-slate-100 group-hover:bg-amber-100 px-2 py-1 rounded-md transition-colors">
+                                <span className="text-xs font-medium text-slate-600 group-hover:text-amber-700">
+                                  {passengerCounts.adults}A {passengerCounts.kids}C {passengerCounts.infants}I
+                                </span>
+                              </div> */}
+                              <div className="w-5 h-5 bg-slate-100 group-hover:bg-amber-100 rounded-full flex items-center justify-center transition-colors">
+                                <svg className="w-3 h-3 text-slate-500 group-hover:text-amber-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </Button>
+                        {(errors.adults || errors.kids || errors.infants) && (
+                          <p className="text-red-500 text-sm">Please check passenger counts</p>
+                        )}
+                      </div>
+
+                      {/* Desktop: Individual Dropdowns */}
+                      <div className="hidden sm:block space-y-2">
                         <Label className="text-sm font-medium text-slate-700 tracking-wide">Adults (12+ years)</Label>
                         <Select onValueChange={(v) => setValue("adults", Number(v))}>
                           <SelectTrigger className="input-travel">
@@ -568,7 +645,7 @@ export function TravelForm() {
                         {errors.adults && <p className="text-red-500 text-sm">{errors.adults.message}</p>}
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="hidden sm:block space-y-2">
                         <Label className="text-sm font-medium text-slate-700 tracking-wide">Children (2–11 years)</Label>
                         <Select onValueChange={(v) => setValue("kids", Number(v))}>
                           <SelectTrigger className="input-travel">
@@ -582,7 +659,7 @@ export function TravelForm() {
                         </Select>
                       </div>
                       
-                      <div className="space-y-2">
+                      <div className="hidden sm:block space-y-2">
                         <Label className="text-sm font-medium text-slate-700 tracking-wide">Infants (Under 2 years)</Label>
                         <Select onValueChange={(v) => setValue("infants", Number(v))}>
                           <SelectTrigger className="input-travel">
@@ -630,6 +707,133 @@ export function TravelForm() {
             </Card>
           </div>
         </div>
+
+        {/* Passenger Selection Popup Modal */}
+        {isPassengerPopupOpen && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+            <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden shadow-2xl animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-amber-50 to-blue-50">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-800">Select Passengers</h3>
+                  <p className="text-sm text-slate-600 mt-1">Choose the number of travelers</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsPassengerPopupOpen(false)}
+                  className="h-8 w-8 p-0 hover:bg-slate-100"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-6">
+                {/* Adults */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-slate-800">Adults</div>
+                    <div className="text-sm text-slate-500">12+ years</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updatePassengerCount('adults', false)}
+                      disabled={passengerCounts.adults <= 1}
+                      className="h-8 w-8 p-0 rounded-full"
+                    >
+                      <Minus className="h-3 w-3" />
+                    </Button>
+                    <span className="w-8 text-center font-medium">{passengerCounts.adults}</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updatePassengerCount('adults', true)}
+                      disabled={passengerCounts.adults >= 8}
+                      className="h-8 w-8 p-0 rounded-full"
+                    >
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Children */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-slate-800">Children</div>
+                    <div className="text-sm text-slate-500">2-11 years</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updatePassengerCount('kids', false)}
+                      disabled={passengerCounts.kids <= 0}
+                      className="h-8 w-8 p-0 rounded-full"
+                    >
+                      <Minus className="h-3 w-3" />
+                    </Button>
+                    <span className="w-8 text-center font-medium">{passengerCounts.kids}</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updatePassengerCount('kids', true)}
+                      disabled={passengerCounts.kids >= 6}
+                      className="h-8 w-8 p-0 rounded-full"
+                    >
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Infants */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-slate-800">Infants</div>
+                    <div className="text-sm text-slate-500">Under 2 years</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updatePassengerCount('infants', false)}
+                      disabled={passengerCounts.infants <= 0}
+                      className="h-8 w-8 p-0 rounded-full"
+                    >
+                      <Minus className="h-3 w-3" />
+                    </Button>
+                    <span className="w-8 text-center font-medium">{passengerCounts.infants}</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updatePassengerCount('infants', true)}
+                      disabled={passengerCounts.infants >= 4}
+                      className="h-8 w-8 p-0 rounded-full"
+                    >
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t bg-slate-50">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm text-slate-600">Total Passengers:</span>
+                  <span className="font-semibold text-slate-800">{getPassengerSummary()}</span>
+                </div>
+                <Button
+                  onClick={() => setIsPassengerPopupOpen(false)}
+                  className="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white"
+                >
+                  Done
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
