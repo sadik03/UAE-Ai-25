@@ -1,0 +1,270 @@
+@import url('https://fonts.googleapis.com/css2?family=Boldonse&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Boldonse&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Qwigley&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Delius&display=swap');
+
+body {
+  margin: 0;
+  padding: 0;
+  /* overflow: hidden; */
+  background: #fff;
+}
+
+/* -------- Base Layout -------- */
+.landing-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  background: #fff;
+}
+
+.landing-container {
+  max-width: 1200px;
+  margin: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 48px;
+  opacity: 0;
+  transform: translateY(40px);
+  animation: fadeUp 1s ease forwards;
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* -------- Left Section -------- */
+.landing-left {
+  flex: 1;
+  margin-top: -490px;
+  min-width: 50px;
+  line-height: 1.6;
+}
+
+.badge {
+  color: #2e7d32; /* Rich Green */
+  font-weight: 700;
+  font-family: "Qwigley", cursive;
+  font-size: 36px;
+}
+
+.landing-title {
+  color: #333;
+  font-size: 57px;
+  line-height: 1.6;
+  font-family: "Boldonse", system-ui;
+  font-weight: 400;
+  margin: 20px 0;
+}
+
+.landing-title span {
+  color: #b8860b; /* Golden shade */
+  font-family: "Boldonse", system-ui;
+  font-weight: 400;
+}
+
+.landing-desc {
+  font-family: "Delius", cursive;
+  font-size: 22px;
+  color: #444;
+  max-width: 560px;
+  margin-bottom: 32px;
+}
+
+.landing-buttons {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+/* -------- Buttons -------- */
+.btn-primary {
+  background: #2e7d32; /* Green */
+  color: #fff;
+  font-family: "Delius", cursive;
+  padding: 16px 48px;
+  font-size: 18px;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: scale(1.05);
+  background: #1b5e20; /* Darker green on hover */
+}
+
+.btn-demo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #444;
+  font-size: 18px;
+}
+
+.play-icon {
+  width: 20px;
+  height: 32px;
+  background: #b8860b; /* Golden */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+/* -------- Right Section -------- */
+.landing-right {
+  flex: 1;
+  min-width: 750px;
+  position: relative;
+}
+
+
+
+.hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  margin-top: -50px;
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+  100% { transform: translateY(0px); }
+}
+
+/* -------- Responsive Styling -------- */
+@media (max-width: 1024px) {
+  .landing-container {
+    flex-direction: column;
+    text-align: center;
+    gap: 32px;
+  }
+
+  .landing-left {
+    min-width: 100%;
+    order: 1;
+    margin-top: 0;
+  }
+
+  .landing-title {
+    font-size: 42px;
+    line-height: 1.4;
+  }
+
+  .landing-desc {
+    max-width: 100%;
+    font-size: 20px;
+  }
+
+  .landing-right {
+    min-width: 100%;
+    order: 2;
+  }
+
+  .landing-buttons {
+    order: 3;
+    justify-content: center;
+    width: 100%;
+    gap: 16px;
+  }
+
+  .bg-shape {
+    display: none;
+  }
+
+  .hero-image {
+    margin-top: 0;
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .landing-title {
+    font-size: 32px;
+    line-height: 1.3;
+  }
+
+  .landing-desc {
+    font-size: 18px;
+    margin-bottom: 24px;
+  }
+
+  .landing-left {
+    margin-top: 0;
+  }
+
+  .landing-right {
+    min-width: auto;
+  }
+
+  .btn-primary,
+  .btn-demo {
+    font-size: 16px;
+    padding: 10px 24px;
+  }
+
+  .hero-image {
+    width: 100%;
+    height: auto;
+  }
+}
+
+/* Gradient Animated Text */
+.amazing-text {
+  background: linear-gradient(90deg, #2e7d32, #b8860b, #2e7d32);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+  display: inline-block;
+  animation: shine 3s linear infinite;
+}
+
+@keyframes shine {
+  0% { background-position: 0% center; }
+  50% { background-position: 100% center; }
+  100% { background-position: 0% center; }
+}
+.bg-shape {
+  position: absolute;
+  rotate: 8deg;
+  top: -290px;
+  width: 100%;
+  right: -290px;
+  z-index: -1;
+  /* animation: float 6s ease-in-out infinite; */
+
+  /* Golden color filter */
+ filter: brightness(0) saturate(100%) 
+          invert(74%) sepia(58%) saturate(609%) 
+          hue-rotate(11deg) brightness(95%) contrast(91%);
+}
+/* Left Corner Decor */
+.bg-shape-left {
+  position: absolute;
+  rotate: 180deg;
+  bottom: -410px;
+  left: -690px;
+  width: 100%;
+  z-index: -1;
+  filter: brightness(0) saturate(100%) 
+          invert(74%) sepia(58%) saturate(609%) 
+          hue-rotate(11deg) brightness(95%) contrast(91%);
+
+}
