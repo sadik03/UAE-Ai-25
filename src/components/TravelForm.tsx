@@ -335,15 +335,7 @@ export function TravelForm() {
                       <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-amber-400/60 rounded-bl-lg"></div>
                       <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-amber-400/60 rounded-br-lg"></div>
                       
-                      {/* Enhanced selection counter */}
-                      {!isAllEmiratesSelected && selectedEmirates.length > 1 && (
-                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-amber-600 to-amber-500 backdrop-blur-sm px-4 py-2 rounded-full text-white text-sm font-semibold shadow-lg border border-amber-400/30">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                            <span>{selectedEmirates.length} Emirates Selected</span>
-                          </div>
-                        </div>
-                      )}
+                  
                       
                       {/* Image cycling indicator dots */}
                       {selectedEmirateImages.length > 1 && (
@@ -632,7 +624,7 @@ export function TravelForm() {
                       {/* Desktop: Individual Dropdowns */}
                       <div className="hidden sm:block space-y-2">
                         <Label className="text-sm font-medium text-slate-700 tracking-wide">Adults (12+ years)</Label>
-                        <Select onValueChange={(v) => setValue("adults", Number(v))}>
+                        <Select onValueChange={(v) => setValue("adults", Number(v))} defaultValue="1">
                           <SelectTrigger className="input-travel">
                             <SelectValue placeholder="Adults" />
                           </SelectTrigger>
@@ -649,7 +641,7 @@ export function TravelForm() {
                         <Label className="text-sm font-medium text-slate-700 tracking-wide">Children (2–11 years)</Label>
                         <Select onValueChange={(v) => setValue("kids", Number(v))}>
                           <SelectTrigger className="input-travel">
-                            <SelectValue placeholder="Kids" />
+                            <SelectValue placeholder="0" />
                           </SelectTrigger>
                           <SelectContent>
                             {[0, 1, 2, 3, 4, 5, 6].map(num => (
@@ -663,7 +655,7 @@ export function TravelForm() {
                         <Label className="text-sm font-medium text-slate-700 tracking-wide">Infants (Under 2 years)</Label>
                         <Select onValueChange={(v) => setValue("infants", Number(v))}>
                           <SelectTrigger className="input-travel">
-                            <SelectValue placeholder="Infants" />
+                            <SelectValue placeholder="0" />
                           </SelectTrigger>
                           <SelectContent>
                             {[0, 1, 2, 3, 4].map(num => (
